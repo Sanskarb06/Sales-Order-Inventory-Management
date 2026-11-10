@@ -1,7 +1,11 @@
-from datetime import datetime
+
+from datetime import datetime, timezone
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from app import db
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +20,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -23,6 +28,7 @@ class Customer(db.Model):
     mobile = db.Column(db.String(20))
     city = db.Column(db.String(80))
     status = db.Column(db.String(10), nullable=False, default="Active")
+
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,19 +39,26 @@ class Product(db.Model):
     stock_quantity = db.Column(db.Integer, nullable=False, default=0)
     status = db.Column(db.String(10), nullable=False, default="Active")
 
+
 class SalesOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_number = db.Column(db.String(40), unique=True, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
-    order_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    order_date = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
     status = db.Column(db.String(20), nullable=False, default="Draft")
     discount_percentage = db.Column(db.Numeric(5, 2), nullable=False, default=0)
     subtotal = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     discount_amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     grand_total = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
     customer = db.relationship("Customer")
     items = db.relationship("SalesOrderItem", cascade="all, delete-orphan")
+
 
 class SalesOrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -54,7 +67,9 @@ class SalesOrderItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     rate = db.Column(db.Numeric(12, 2), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
+
     product = db.relationship("Product")
+
 
 class StockMovement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,5 +79,10 @@ class StockMovement(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey("sales_order.id"))
     reason = db.Column(db.String(255), nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
     product = db.relationship("Product")
