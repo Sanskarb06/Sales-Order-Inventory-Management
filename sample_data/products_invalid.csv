@@ -1,0 +1,4 @@
+product_code,product_name,category,price,stock_quantity,status
+PRD-004,Webcam,Electronics,-200,5,Active
+PRD-004,USB Hub,Accessories,600,10,Active
+PRD-005,Speaker,Electronics,1200,-3,Unknown
